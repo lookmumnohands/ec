@@ -1,55 +1,11 @@
-
-// Parallax títol
-window.addEventListener("scroll", () => {
-  const title = document.getElementById("siteTitle");
-  if (title) {
-    const offset = window.scrollY * 0.5;
-    title.style.transform = `translateY(${offset}px)`;
-  }
-});
-
-// Scroll suau cap a "about"
-function scrollToAbout() {
-  const about = document.getElementById("about");
-  if (about) {
-    setTimeout(() => {
-      about.scrollIntoView({ behavior: "smooth" });
-    }, 50); // petit delay per assegurar carregament
-  }
-}
-
-// Botó flotant Esteve Climent
-window.addEventListener("DOMContentLoaded", () => {
-  const scrollBtn = document.createElement("h1");
-  scrollBtn.id = "scrollToTop";
-  scrollBtn.textContent = "Esteve Climent";
-  scrollBtn.className = "site-title";
-  scrollBtn.onclick = () => window.scrollTo({ top: 0, behavior: "smooth" });
-  scrollBtn.style.display = "none";
-  document.body.appendChild(scrollBtn);
-});
-
-let lastScrollTop = 0;
-window.addEventListener("scroll", () => {
-  const scrollBtn = document.getElementById("scrollToTop");
-  if (!scrollBtn) return;
-
-  const currentScroll = window.pageYOffset || document.documentElement.scrollTop;
-  if (currentScroll < lastScrollTop && currentScroll > 300) {
-    scrollBtn.style.display = "block";
-  } else {
-    scrollBtn.style.display = "none";
-  }
-  lastScrollTop = currentScroll;
-});
-
-// Imatge flotant sincronitzada (només desktop)
 function initFloatingPreview() {
   const isMobile = window.matchMedia("(pointer: coarse)").matches;
   if (isMobile) return;
 
   const rows = document.querySelectorAll('.text-row');
   const preview = document.getElementById('floating-preview');
+  if (!preview || rows.length === 0) return;
+
   let currentMedia = null;
   let textTimeout = null;
   let mediaTimeout = null;
@@ -118,10 +74,17 @@ function initFloatingPreview() {
   });
 }
 
-// Reexecutar quan es torna a carregar el contingut (per canvis d'idioma)
-document.addEventListener("DOMContentLoaded", () => {
-  initFloatingPreview();
-});
-window.addEventListener("pageshow", () => {
-  initFloatingPreview();
-});
+// 🔁 Reintenta fins que la pàgina estigui llesta
+function waitForTextRowsAndPreview(attempts = 0) {
+  const maxAttempts = 20;
+  const preview = document.getElementById('floating-preview');
+  const rows = document.querySelectorAll('.text-row');
+
+  if (preview && rows.length > 0) {
+    initFloatingPreview();
+  } else if (attempts < maxAttempts) {
+    setTimeout(() => waitForTextRowsAndPreview(attempts + 1), 300);
+  }
+}
+
+document.addEventListener("DOMContentLoaded", waitForTextRowsAndPreview);
